@@ -1,5 +1,11 @@
+import sys
+# Change the sys path to locate a Talk of the Town repository
+PATH_TO_ANYTOWN = '../anytown'
+sys.path.append(PATH_TO_ANYTOWN)
+# Now import from that Talk of the Town repository
 from game import Game
 import random
+
 
 """GLOBAL VARS"""
 BAR_TYPES = ['Distillery', 'Bar', 'Tavern', 'Brewery']
