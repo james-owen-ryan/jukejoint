@@ -6,6 +6,7 @@ sys.path.append(PATH_TO_ANYTOWN)
 from game import Game
 import random
 from actionselector import QuitJob
+from song import Song, Stanza
 
 
 """GLOBAL VARS"""
@@ -16,11 +17,10 @@ ACTION_SELECTORS = [
 ]
 
 SONGS = [
-  #id, lyric list: (english lyric, [symbols])
-  ('TEST SONG 1', [
-                  ('Never gonna give you up', ['posemo', 'up']), 
-                  ('Never gonna let you down', ['posemo', 'down'])
-                  ]
+  Song(id='TEST SONG 1', stanzas=(
+      Stanza(lyrics='Never gonna give you up', symbols=('up', 10)),
+      Stanza(lyrics='Never gonna let you down', symbols=('down', 10))
+    )
   )
 ]
 
@@ -148,7 +148,10 @@ chosen_bar = game.find_co(selection_name)
 #Give people in the bar action selectors.
 for person in chosen_bar.people_here_now:
   possible_selectors = get_applicable_actionselectors(person, ACTION_SELECTORS)
-  person.salient_action_selector = random.choice(possible_selectors)
+  try:
+    person.salient_action_selector = random.choice(possible_selectors)
+  except IndexError: #no possible selectors are available to this person.
+    person.salient_action_selector = None
   print '{} is debating about {}'.format(person.full_name, person.salient_action_selector)
 
 #Generate and (eventually) display pre-game text to the user.
@@ -158,30 +161,28 @@ instructions = generate_jukebox_instructions()
 
 #Display the songs to the user.
 for index, song in enumerate(SONGS):
-  print "{}: {}".format(index, song[0])
+  print "{}: {}".format(index, song.id)
 
 #Get the users choice of song.
 selection_index = int(raw_input('You chose: '))
 current_song = SONGS[selection_index]
 #Inform user and NPCs that a new song is starting
-print "{} begins to play...".format(current_song[0])
+print "{} begins to play...".format(current_song.id)
 
 #loop through song lyrics
-song_lyrics = enumerate(current_song[1])
-current_lyric = song_lyrics.next()[1]
+song_stanzas = enumerate(current_song)
+current_stanza = song_stanzas.next()[1]
 continue_song = True
 while continue_song:
-  english_lyric = current_lyric[0]
-  symbols = current_lyric[1]
-  print english_lyric
+  print current_stanza.lyrics
   #have npcs consider the symbols attached to this lyric
   for person in get_people_with_actionselectors(chosen_bar.people_here_now):
-    thought = thought_from_symbols(person, symbols, THOUGHTS)
+    thought = thought_from_symbols(person, current_stanza.symbols, THOUGHTS)
     thought[THOUGHT_EFFECT_INDEX](person) #execute the effects of the thought
     person.recent_thoughts.append(thought[0])
     print "{}: {}".format(person.full_name, thought[THOUGHT_ID_INDEX])
   try:
-    current_lyric = song_lyrics.next()[1]
+    current_stanza = song_stanzas.next()[1]
     cont = raw_input("Continue? (yes/no): ")
     if cont != "yes": continue_song = False
   except StopIteration:
