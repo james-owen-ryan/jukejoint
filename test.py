@@ -5,24 +5,22 @@ sys.path.append(PATH_TO_ANYTOWN)
 # Now import from that Talk of the Town repository
 from game import Game
 import random
+from actionselector import QuitJob
+from song import Song, Stanza
 
 
 """GLOBAL VARS"""
 BAR_TYPES = ['Distillery', 'Bar', 'Tavern', 'Brewery']
 
 ACTION_SELECTORS = [
-  #(id, scale, starting position, precondition)
-  ('QUIT YOUR JOB', (-5,5), 0, lambda person: person.occupation) 
+  QuitJob(scale=(-5,0,5))
 ]
-PRECONDITION_INDEX = 3
-NAME_INDEX = 0
 
 SONGS = [
-  #id, lyric list: (english lyric, [symbols])
-  ('TEST SONG 1', [
-                  ('Never gonna give you up', ['posemo', 'up']), 
-                  ('Never gonna let you down', ['posemo', 'down'])
-                  ]
+  Song(id='TEST SONG 1', stanzas=(
+      Stanza(lyrics='Never gonna give you up', symbols=('up', 10)),
+      Stanza(lyrics='Never gonna let you down', symbols=('down', 10))
+    )
   )
 ]
 
@@ -52,6 +50,29 @@ THOUGHT_PRECONDITION_INDEX = 2
 
 #CHECK IF NPCs NOTICE THE SONG CHANGE, HAVE OPINIONS ABOUT THE SONG (have they encountered it before?!).
 
+""" TalkTown Functions """
+def boss(self):
+    """Return the person who is this person's boss at their job, or None is this person has no job.
+    Note that if a person owns the business, they are considered their own boss."""
+    try:
+      return self.occupation.company.owner.person if self.occupation else None
+    except Exception as e:
+      return None
+
+def likes(self, person):
+    threshold = ['somewhat high', 'high', 'very high', 'extremely high']
+    try:
+      return True if self.relationships[person].charge_str in threshold else False
+    except Exception as e:
+      return False
+
+def dislikes(self, person):
+    threshold = ['somewhat low', 'low', 'very low', 'extremely low']
+    try:
+      return True if self.relationships[person].charge_str in threshold else False
+    except Exception as e:
+      return False
+
 """ FUNCTIONS """
 def setup():
   game = Game()
@@ -80,7 +101,7 @@ def get_applicable_actionselectors(person, action_selectors):
   """Returns the action selectors that this person passes the preconditions for"""
   possible_selectors = []
   for action_selector in action_selectors:
-    if action_selector[PRECONDITION_INDEX](person):
+    if action_selector.precondition(person):
       possible_selectors.append(action_selector)
   return possible_selectors
 
@@ -127,8 +148,11 @@ chosen_bar = game.find_co(selection_name)
 #Give people in the bar action selectors.
 for person in chosen_bar.people_here_now:
   possible_selectors = get_applicable_actionselectors(person, ACTION_SELECTORS)
-  person.salient_action_selector = random.choice(possible_selectors)
-  print '{} is debating about {}'.format(person.full_name, person.salient_action_selector[NAME_INDEX])
+  try:
+    person.salient_action_selector = random.choice(possible_selectors)
+  except IndexError: #no possible selectors are available to this person.
+    person.salient_action_selector = None
+  print '{} is debating about {}'.format(person.full_name, person.salient_action_selector)
 
 #Generate and (eventually) display pre-game text to the user.
 chosen_bar_description = generate_description_of_bar(chosen_bar)
@@ -137,30 +161,28 @@ instructions = generate_jukebox_instructions()
 
 #Display the songs to the user.
 for index, song in enumerate(SONGS):
-  print "{}: {}".format(index, song[0])
+  print "{}: {}".format(index, song.id)
 
 #Get the users choice of song.
 selection_index = int(raw_input('You chose: '))
 current_song = SONGS[selection_index]
 #Inform user and NPCs that a new song is starting
-print "{} begins to play...".format(current_song[0])
+print "{} begins to play...".format(current_song.id)
 
 #loop through song lyrics
-song_lyrics = enumerate(current_song[1])
-current_lyric = song_lyrics.next()[1]
+song_stanzas = enumerate(current_song)
+current_stanza = song_stanzas.next()[1]
 continue_song = True
 while continue_song:
-  english_lyric = current_lyric[0]
-  symbols = current_lyric[1]
-  print english_lyric
+  print current_stanza.lyrics
   #have npcs consider the symbols attached to this lyric
   for person in get_people_with_actionselectors(chosen_bar.people_here_now):
-    thought = thought_from_symbols(person, symbols, THOUGHTS)
+    thought = thought_from_symbols(person, current_stanza.symbols, THOUGHTS)
     thought[THOUGHT_EFFECT_INDEX](person) #execute the effects of the thought
     person.recent_thoughts.append(thought[0])
     print "{}: {}".format(person.full_name, thought[THOUGHT_ID_INDEX])
   try:
-    current_lyric = song_lyrics.next()[1]
+    current_stanza = song_stanzas.next()[1]
     cont = raw_input("Continue? (yes/no): ")
     if cont != "yes": continue_song = False
   except StopIteration:
