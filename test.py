@@ -50,6 +50,29 @@ THOUGHT_PRECONDITION_INDEX = 2
 
 #CHECK IF NPCs NOTICE THE SONG CHANGE, HAVE OPINIONS ABOUT THE SONG (have they encountered it before?!).
 
+""" TalkTown Functions """
+def boss(self):
+    """Return the person who is this person's boss at their job, or None is this person has no job.
+    Note that if a person owns the business, they are considered their own boss."""
+    try:
+      return self.occupation.company.owner.person if self.occupation else None
+    except Exception as e:
+      return None
+
+def likes(self, person):
+    threshold = ['somewhat high', 'high', 'very high', 'extremely high']
+    try:
+      return True if self.relationships[person].charge_str in threshold else False
+    except Exception as e:
+      return False
+
+def dislikes(self, person):
+    threshold = ['somewhat low', 'low', 'very low', 'extremely low']
+    try:
+      return True if self.relationships[person].charge_str in threshold else False
+    except Exception as e:
+      return False
+
 """ FUNCTIONS """
 def setup():
   game = Game()
