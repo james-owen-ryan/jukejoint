@@ -5,17 +5,15 @@ sys.path.append(PATH_TO_ANYTOWN)
 # Now import from that Talk of the Town repository
 from game import Game
 import random
+from actionselector import QuitJob
 
 
 """GLOBAL VARS"""
 BAR_TYPES = ['Distillery', 'Bar', 'Tavern', 'Brewery']
 
 ACTION_SELECTORS = [
-  #(id, scale, starting position, precondition)
-  ('QUIT YOUR JOB', (-5,5), 0, lambda person: person.occupation) 
+  QuitJob(scale=(-5,0,5))
 ]
-PRECONDITION_INDEX = 3
-NAME_INDEX = 0
 
 SONGS = [
   #id, lyric list: (english lyric, [symbols])
@@ -80,7 +78,7 @@ def get_applicable_actionselectors(person, action_selectors):
   """Returns the action selectors that this person passes the preconditions for"""
   possible_selectors = []
   for action_selector in action_selectors:
-    if action_selector[PRECONDITION_INDEX](person):
+    if action_selector.precondition(person):
       possible_selectors.append(action_selector)
   return possible_selectors
 
@@ -128,7 +126,7 @@ chosen_bar = game.find_co(selection_name)
 for person in chosen_bar.people_here_now:
   possible_selectors = get_applicable_actionselectors(person, ACTION_SELECTORS)
   person.salient_action_selector = random.choice(possible_selectors)
-  print '{} is debating about {}'.format(person.full_name, person.salient_action_selector[NAME_INDEX])
+  print '{} is debating about {}'.format(person.full_name, person.salient_action_selector)
 
 #Generate and (eventually) display pre-game text to the user.
 chosen_bar_description = generate_description_of_bar(chosen_bar)
