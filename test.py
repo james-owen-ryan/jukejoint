@@ -18,8 +18,8 @@ ACTION_SELECTORS = [
 
 SONGS = [
   Song(id='TEST SONG 1', stanzas=(
-      Stanza(lyrics='Never gonna give you up', symbols=('up', 10)),
-      Stanza(lyrics='Never gonna let you down', symbols=('down', 10))
+      Stanza(lyrics='Never gonna give you up', symbols=(('up', 10),)),
+      Stanza(lyrics='Never gonna let you down', symbols=(('down', 10),))
     )
   )
 ]
@@ -50,28 +50,38 @@ THOUGHT_PRECONDITION_INDEX = 2
 
 #CHECK IF NPCs NOTICE THE SONG CHANGE, HAVE OPINIONS ABOUT THE SONG (have they encountered it before?!).
 
-""" TalkTown Functions """
-def boss(self):
-    """Return the person who is this person's boss at their job, or None is this person has no job.
-    Note that if a person owns the business, they are considered their own boss."""
-    try:
-      return self.occupation.company.owner.person if self.occupation else None
-    except Exception as e:
-      return None
+""" Update TalkTown """
+def entertain(self, artifact, provoked_by=None):
+    """Influence symbol weightings from a given artifact.
 
-def likes(self, person):
-    threshold = ['somewhat high', 'high', 'very high', 'extremely high']
-    try:
-      return True if self.relationships[person].charge_str in threshold else False
-    except Exception as e:
-      return False
+    @param artifact: The artifact under consideration
+    @param provoked_by: The person who provided the artifact, if any.
+    """
+    symbol_set = ()
+    #consider the symbols on the recent thoughts (the train)
+    #consider any dramatic weightings (allusions)
+    #consider songs you've heard before (memory)
+    #consider action selectors symbols
+    symbol_set += update_symbol_weights(self, artifact.symbols, self.salient_action_selector.symbols)
+    return symbol_set
 
-def dislikes(self, person):
-    threshold = ['somewhat low', 'low', 'very low', 'extremely low']
-    try:
-      return True if self.relationships[person].charge_str in threshold else False
-    except Exception as e:
-      return False
+def update_symbol_weights(self, artifact_symbols, other_symbols):
+    """Given an artifact's symbols and some other set of symbols:
+    1) If their are overlapping symbols, multiply their weights.
+    2) If their are distinct symbols in either artifact_symbols or other_symbols, include these symbols.
+    """
+    symbol_set = ()
+    symbol_names_in_both_sets = set([s[0] for s in artifact_symbols]) | set([s[0] for s in other_symbols])
+    for symbol_name in symbol_names_in_both_sets:
+        artifact_symbol = filter( lambda s: s[0] == symbol_name, artifact_symbols )
+        other_symbol = filter( lambda s: s[0] == symbol_name, other_symbols )
+        if artifact_symbol and other_symbol:
+            symbol_set += ((symbol_name, artifact_symbol[0][1] * other_symbol[0][1]),)
+        elif artifact_symbol:
+            symbol_set += ((symbol_name, artifact_symbol[0][1]),)
+        elif other_symbol:
+            symbol_set += ((symbol_name, other_symbol[0][1]),)
+    return symbol_set
 
 """ FUNCTIONS """
 def setup():
@@ -108,7 +118,7 @@ def get_applicable_actionselectors(person, action_selectors):
 def get_people_with_actionselectors(people):
   action_people = []
   for person in people:
-    if hasattr(person, 'salient_action_selector'):
+    if person.salient_action_selector is not None:
       action_people.append(person)
   return action_people
 
@@ -177,10 +187,10 @@ while continue_song:
   print current_stanza.lyrics
   #have npcs consider the symbols attached to this lyric
   for person in get_people_with_actionselectors(chosen_bar.people_here_now):
-    thought = thought_from_symbols(person, current_stanza.symbols, THOUGHTS)
-    thought[THOUGHT_EFFECT_INDEX](person) #execute the effects of the thought
-    person.recent_thoughts.append(thought[0])
-    print "{}: {}".format(person.full_name, thought[THOUGHT_ID_INDEX])
+    symbol_weights = entertain(person, current_stanza)
+    thought = game.thought_productionist.target_association(person, symbol_weights)
+    #TODO: add thought to person's train of thoughts.
+    print "{}: {}".format(person.full_name, thought.realize())
   try:
     current_stanza = song_stanzas.next()[1]
     cont = raw_input("Continue? (yes/no): ")
