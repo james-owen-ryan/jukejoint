@@ -6,7 +6,7 @@ sys.path.append(PATH_TO_ANYTOWN)
 from game import Game
 import random
 from actionselector import QuitJob
-from song import Song, Stanza
+from song import Song, Stanza, Songs
 
 
 """GLOBAL VARS"""
@@ -16,13 +16,7 @@ ACTION_SELECTORS = [
   QuitJob(scale=(-5,0,5))
 ]
 
-SONGS = [
-  Song(id='TEST SONG 1', stanzas=(
-      Stanza(lyrics='Never gonna give you up', symbols=(('up', 10),)),
-      Stanza(lyrics='Never gonna let you down', symbols=(('down', 10),))
-    )
-  )
-]
+SONGS = Songs
 
 """ IDEAS """
 #Have jukeboxes be an object that Business' may optionally have.
