@@ -24,16 +24,6 @@ SONGS = [
   )
 ]
 
-THOUGHTS = [
-  #Display text/Id, associated symbols, precondition, effects.
-  ('I am feeling kinda up!', ['up'], lambda person: True, lambda person: True),
-  ('I am feeling kinda down...', ['down'], lambda person: 'I am feeling kinda up!' in person.recent_thoughts, lambda person: True),
-  ('I feel great!', ['posemo'], lambda person: True, lambda person: True)
-]
-THOUGHT_EFFECT_INDEX = 3
-THOUGHT_ID_INDEX = 0
-THOUGHT_PRECONDITION_INDEX = 2
-
 """ IDEAS """
 #Have jukeboxes be an object that Business' may optionally have.
 
@@ -191,6 +181,7 @@ while continue_song:
     thought = game.thought_productionist.target_association(person, symbol_weights)
     #TODO: add thought to person's train of thoughts.
     print "{}: {}".format(person.full_name, thought.realize())
+    thought.execute()
   try:
     current_stanza = song_stanzas.next()[1]
     cont = raw_input("Continue? (yes/no): ")
