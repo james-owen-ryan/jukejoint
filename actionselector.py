@@ -8,7 +8,7 @@ class QuitJob(ActionSelector):
   def __init__(self, scale, precondition=lambda person: person.occupation):
     super(QuitJob, self).__init__('QUIT JOB', scale)
     self.precondition = precondition
-    self.symbols = (('work', 2), ('job', 2), ('quit', 2))
+    self.signals = (('work', 2), ('job', 2), ('quit', 2))
     #TODO: symbol weights as a function of where the scale is currently at
 
   def __str__(self):
