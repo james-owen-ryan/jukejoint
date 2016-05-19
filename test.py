@@ -10,6 +10,7 @@ from song import Song, Stanza, Songs
 
 
 """GLOBAL VARS"""
+DEBUG = True if raw_input('ENGAGE DEBUG MODE? ') in ('yes', 'y', 'yeah', 'ok', 'sure', 'lol yep') else False
 BAR_TYPES = ['Distillery', 'Bar', 'Tavern', 'Brewery']
 
 ACTION_SELECTORS = [
@@ -126,7 +127,7 @@ def thought_from_symbols(person, symbols, thoughts):
 game = setup()
 while has_alcohol(game.city, BAR_TYPES) is False:
   game = setup()
-
+game.thought_productionist.debug = DEBUG
 #Allow the user to select the bar they want to enter.
 bars = get_alcohol_businesses(game.city, BAR_TYPES)
 print '--Here are the bars available to enter--'
@@ -161,26 +162,37 @@ for index, song in enumerate(SONGS):
 selection_index = int(raw_input('You chose: '))
 current_song = SONGS[selection_index]
 #Inform user and NPCs that a new song is starting
-print "{} begins to play...".format(current_song.id)
+print "\n{} begins to play...\n".format(current_song.id)
 
 #loop through song lyrics
 song_stanzas = enumerate(current_song)
 current_stanza = song_stanzas.next()[1]
 continue_song = True
+THINKER = None
 while continue_song:
-  print current_stanza.lyrics
+  print "{}\n".format(current_stanza.lyrics)
   #have npcs consider the symbols attached to this lyric
   for person in get_people_with_actionselectors(chosen_bar.people_here_now):
+    THINKER = person
     stimuli = person.mind.associate(current_stanza)
     thought = person.mind.elicit_thought(stimuli)
     #TODO: add thought to person's train of thoughts.
-    print "{}: {}".format(person.full_name, thought.realize())
-    thought.execute()
-    person.mind.thoughts.append(thought)
+    if thought:
+        print "{person}: {thought} ({signals})".format(
+            person=person.full_name,
+            thought=thought.realize(),
+            signals=", ".join(
+                "{signal} ({weight})".format(signal=signal, weight=weight) for signal, weight in thought.signals.iteritems()
+            )
+        )
+        thought.execute()
+        person.mind.thoughts.append(thought)
+    else:
+        print "{person}: ...".format(person=person.full_name)
   try:
     current_stanza = song_stanzas.next()[1]
     cont = raw_input("Continue? (yes/no): ")
-    if cont != "yes": continue_song = False
+    if cont.lower() not in ("yes", 'y', 'ok', 'sure'): continue_song = False
   except StopIteration:
     continue_song = False
     print "No more lyrics"
