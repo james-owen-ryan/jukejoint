@@ -5,7 +5,7 @@ sys.path.append(PATH_TO_ANYTOWN)
 # Now import from that Talk of the Town repository
 from game import Game
 import random
-from actionselector import QuitJob
+from actionselector import Departure
 from song import Song, Stanza, Songs
 
 
@@ -13,7 +13,7 @@ from song import Song, Stanza, Songs
 BAR_TYPES = ['Distillery', 'Bar', 'Tavern', 'Brewery']
 
 ACTION_SELECTORS = [
-  QuitJob(scale=(-5,0,5))
+  Departure(scale=(-5,0,5))
 ]
 
 SONGS = Songs
@@ -171,11 +171,12 @@ while continue_song:
   print current_stanza.lyrics
   #have npcs consider the symbols attached to this lyric
   for person in get_people_with_actionselectors(chosen_bar.people_here_now):
-    symbol_weights = entertain(person, current_stanza)
-    thought = game.thought_productionist.target_association(person, symbol_weights)
+    stimuli = person.mind.associate(current_stanza)
+    thought = person.mind.elicit_thought(stimuli)
     #TODO: add thought to person's train of thoughts.
     print "{}: {}".format(person.full_name, thought.realize())
     thought.execute()
+    person.mind.thoughts.append(thought)
   try:
     current_stanza = song_stanzas.next()[1]
     cont = raw_input("Continue? (yes/no): ")
