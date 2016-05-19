@@ -140,7 +140,7 @@ That sends me down to the river tonight
 Down to the river
 my baby and I
 Oh down to the river we ride""",
-        signals=(('brother', 1), ('remember', 2), ('memory', 2), ('bad memory', 2), ('lost love', 1),)
+        signals=(('brother', 1), ('remember', 2), ('memory', 2), ('badmemory', 2), ('lostlove', 1),)
       )
     )
   ),
@@ -151,7 +151,7 @@ In a cabin, on a hill in Butcher Holler
 We were poor but we had love,
 That's the one thing that daddy made sure of
 He shoveled coal to make a poor man's dollar""",
-        signals=(('home', 1), ('low wage', 1), ('job', 1), ('youth', 1), ('father', 2), ('love', 2), ('family', 2), ('the mine', 1), ('poor', 1), ('daughter', 1),)
+        signals=(('home', 1), ('lowwage', 1), ('job', 1), ('youth', 1), ('father', 2), ('love', 2), ('family', 2), ('themine', 1), ('poor', 1), ('daughter', 1),)
       ),
       Stanza(
         lyrics="""My daddy worked all night in the Van Lear coal mines
@@ -183,7 +183,7 @@ I remember well, the well where I drew water
 The work we done was hard
 At night we'd sleep 'cause we were tired
 I never thought of ever leaving Butcher Holler""",
-        signals=(('home', 2), ('life time', 1), ('farm', 1), ('job', 1), ('family', 2), ('youth', 1), ('father', 1), ('poor', 1), ('daughter', 1),)
+        signals=(('home', 2), ('lifetime', 1), ('farm', 1), ('job', 1), ('family', 2), ('youth', 1), ('father', 1), ('poor', 1), ('daughter', 1),)
       ),
       Stanza(
         lyrics="""Well a lot of things have changed since a way back then
