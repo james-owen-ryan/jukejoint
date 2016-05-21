@@ -107,6 +107,18 @@ def get_people_with_actionselectors(people):
       action_people.append(person)
   return action_people
 
+def display_title_screen():
+    """Display a title screen for the command-line version of this demo."""
+    import time
+    title = open('title.txt', 'r').readlines()
+    print '\n\n'
+    for line in title:
+        time.sleep(0.075)
+        sys.stdout.write(line)
+    print '\n\n'
+    raw_input("\t\t\t\tPress enter to begin.  ")
+    print '\n\n'
+
 def generate_description_of_bar(bar):
   print '{DESCRIPTION OF BAR}'
 
@@ -128,6 +140,9 @@ game = setup()
 while has_alcohol(game.city, BAR_TYPES) is False:
   game = setup()
 game.thought_productionist.debug = DEBUG
+# Display demo title (unless debug mode is engaged)
+if not DEBUG:
+    display_title_screen()
 #Allow the user to select the bar they want to enter.
 bars = get_alcohol_businesses(game.city, BAR_TYPES)
 print '--Here are the bars available to enter--'
