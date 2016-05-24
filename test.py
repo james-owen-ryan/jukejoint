@@ -1,6 +1,6 @@
 import sys
 # Change the sys path to locate a Talk of the Town repository
-PATH_TO_ANYTOWN = '../anytown'
+PATH_TO_ANYTOWN = './talktown'
 sys.path.append(PATH_TO_ANYTOWN)
 # Now import from that Talk of the Town repository
 from game import Game
@@ -18,55 +18,6 @@ ACTION_SELECTORS = [
 ]
 
 SONGS = Songs
-
-""" IDEAS """
-#Have jukeboxes be an object that Business' may optionally have.
-
-#PEOPLE COULD SHOW UP WITH A.S. ALREADY. WE COULD RIG IT IN FOR DIFFICULTY/INTERESTING SITUATIONS.
-
-#Run the symbol tagger over our own english text in the Thoughts as well. Otherwise, everytime I add a new symbol type I have to go
-#over all my old thoughts and see if this new symbol should be attached to them as well.
-
-""" TODOS """
-#person.recent_thoughts is currently just the english text and not the actual Thought.
-
-#make 'salient_action_selector' a property of person.py? Think about how action selectors will be handled by people. Will
-#they just have one action selector they work on at a time? Multiple? Will some be foregrounded but others backgrounded?
-
-#CHECK IF NPCs NOTICE THE SONG CHANGE, HAVE OPINIONS ABOUT THE SONG (have they encountered it before?!).
-
-""" Update TalkTown """
-def entertain(self, artifact, provoked_by=None):
-    """Influence symbol weightings from a given artifact.
-
-    @param artifact: The artifact under consideration
-    @param provoked_by: The person who provided the artifact, if any.
-    """
-    symbol_set = ()
-    #consider the symbols on the recent thoughts (the train)
-    #consider any dramatic weightings (allusions)
-    #consider songs you've heard before (memory)
-    #consider action selectors symbols
-    symbol_set += update_symbol_weights(self, artifact.symbols, self.salient_action_selector.symbols)
-    return symbol_set
-
-def update_symbol_weights(self, artifact_symbols, other_symbols):
-    """Given an artifact's symbols and some other set of symbols:
-    1) If their are overlapping symbols, multiply their weights.
-    2) If their are distinct symbols in either artifact_symbols or other_symbols, include these symbols.
-    """
-    symbol_set = ()
-    symbol_names_in_both_sets = set([s[0] for s in artifact_symbols]) | set([s[0] for s in other_symbols])
-    for symbol_name in symbol_names_in_both_sets:
-        artifact_symbol = filter( lambda s: s[0] == symbol_name, artifact_symbols )
-        other_symbol = filter( lambda s: s[0] == symbol_name, other_symbols )
-        if artifact_symbol and other_symbol:
-            symbol_set += ((symbol_name, artifact_symbol[0][1] * other_symbol[0][1]),)
-        elif artifact_symbol:
-            symbol_set += ((symbol_name, artifact_symbol[0][1]),)
-        elif other_symbol:
-            symbol_set += ((symbol_name, other_symbol[0][1]),)
-    return symbol_set
 
 """ FUNCTIONS """
 def setup():
