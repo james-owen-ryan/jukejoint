@@ -7,11 +7,10 @@ from game import Game
 import random
 from actionselector import Departure
 from song import Song, Stanza, Songs
-
+from business import Bar
 
 """GLOBAL VARS"""
 DEBUG = True if raw_input('ENGAGE DEBUG MODE? ') in ('yes', 'y', 'yeah', 'ok', 'sure', 'lol yep') else False
-BAR_TYPES = ['Distillery', 'Bar', 'Tavern', 'Brewery']
 
 ACTION_SELECTORS = [
   Departure(scale=(-5,0,5))
@@ -29,19 +28,6 @@ def setup():
       pass
   game.enact_no_fi_simulation()
   return game
-
-def has_alcohol(city, bar_types):
-  for bar_type in bar_types:
-    if len(city.businesses_of_type(bar_type)) > 0:
-      return True
-  return False
-
-def get_alcohol_businesses(city, bar_types):
-  bars = []
-  for bar_type in bar_types:
-    for bar in city.businesses_of_type(bar_type):
-      bars.append(bar)
-  return bars
 
 def get_applicable_actionselectors(person, action_selectors):
   """Returns the action selectors that this person passes the preconditions for"""
@@ -70,41 +56,58 @@ def display_title_screen():
     raw_input("\t\t\t\tPress enter to begin.  ")
     print '\n\n'
 
-def generate_description_of_bar(bar):
-  print '{DESCRIPTION OF BAR}'
+def display_bar_to_enter(bars):
+  print '-----------------------------------------'
+  for index, bar in enumerate(bars):
+    print '{}: {}, {} people'.format(index, bar.name, len(bar.people_here_now))
+  print '-----------------------------------------'
 
-def generate_description_of_people(people):
-  print '{DESCRIPTION OF PEOPLE IN BAR}'
+def display_intro_text():
+  print '\n\n'
+  print """You step into the bar. The walls are slightly peeling and smoke fills the air.
+A person catches your eye"""
+  print '\n\n'
+  raw_input("\t\t\t\tPress enter to continue.  ")
+  print '\n\n'
 
-def generate_jukebox_instructions():
+def display_jukebox_instructions():
   print '{INSTRUCTIONS ON HOW TO USE JUKEBOX}'
+  print '\n\n'
+  raw_input("\t\t\t\tPress enter to continue.  ")
+  print '\n\n'
 
-def thought_from_symbols(person, symbols, thoughts):
-  passable_thoughts = []
-  for thought in thoughts:
-    if thought[THOUGHT_PRECONDITION_INDEX](person):
-      passable_thoughts.append(thought)
-  return random.choice(passable_thoughts)
+def display_songs():
+  for index, song in enumerate(SONGS):
+    print "{}: {}".format(index, song.id)
 
-#Guarantee that the game will generate a city with a bar.
+#Rig the generation of the city to always have 3 bars.
 game = setup()
-while has_alcohol(game.city, BAR_TYPES) is False:
-  game = setup()
+while len(game.city.businesses_of_type('Bar')) < 3:
+  owner = game._determine_who_will_establish_new_business(business_type=Bar)
+  Bar(owner=owner)
+
+#Rig the city to have bars with 1,2 and 3 people, respectively.
+num_people_in_bar = 1
+for bar in game.city.businesses_of_type('Bar'):
+  if len(bar.people_here_now) > num_people_in_bar:
+    bar.people_here_now = list(bar.people_here_now)[:num_people_in_bar]
+  while len(bar.people_here_now) < num_people_in_bar:
+    game.random_person.go_to(bar)
+  num_people_in_bar += 1
+
 game.thought_productionist.debug = DEBUG
+
 # Display demo title (unless debug mode is engaged)
 if not DEBUG:
     display_title_screen()
+
 #Allow the user to select the bar they want to enter.
-bars = get_alcohol_businesses(game.city, BAR_TYPES)
-print '--Here are the bars available to enter--'
-for index, bar in enumerate(bars):
-  print '{}: {}, {} people'.format(index, bar.name, len(bar.people_here_now))
-print '----------------------------------------'
+bars = game.city.businesses_of_type('Bar')
+display_bar_to_enter(bars)
 
 #Handle users input for bar selection.
-selection_index = int(raw_input('You chose: '))
-selection_name = bars[selection_index].name
-chosen_bar = game.find_co(selection_name)
+selection_index = int(raw_input('Select a bar to enter: '))
+chosen_bar = bars[selection_index]
 
 #Give people in the bar action selectors.
 for person in chosen_bar.people_here_now:
@@ -113,20 +116,22 @@ for person in chosen_bar.people_here_now:
     person.salient_action_selector = random.choice(possible_selectors)
   except IndexError: #no possible selectors are available to this person.
     person.salient_action_selector = None
-  print '{} is debating about {}'.format(person.full_name, person.salient_action_selector)
+  if DEBUG:
+    print '{} is debating about {}'.format(person.full_name, person.salient_action_selector)
 
-#Generate and (eventually) display pre-game text to the user.
-chosen_bar_description = generate_description_of_bar(chosen_bar)
-people_description = generate_description_of_people(chosen_bar.people_here_now)
-instructions = generate_jukebox_instructions()
+#Introduce the characters and the setting.
+display_intro_text()
 
-#Display the songs to the user.
-for index, song in enumerate(SONGS):
-  print "{}: {}".format(index, song.id)
+#Introduce instructions on how to play.
+display_jukebox_instructions()
+
+#Display the songs available to the user.
+display_songs()
 
 #Get the users choice of song.
 selection_index = int(raw_input('You chose: '))
 current_song = SONGS[selection_index]
+
 #Inform user and NPCs that a new song is starting
 print "\n{} begins to play...\n".format(current_song.id)
 
