@@ -5,12 +5,11 @@ sys.path.append(PATH_TO_ANYTOWN)
 # Now import from that Talk of the Town repository
 from game import Game
 import random
-from song import Song, Stanza, Songs
+from song import songs
 from business import Bar
 
 """GLOBAL VARS"""
 DEBUG = True if raw_input('ENGAGE DEBUG MODE? ') in ('yes', 'y', 'yeah', 'ok', 'sure', 'lol yep') else False
-SONGS = Songs
 
 """ FUNCTIONS """
 def setup():
@@ -64,8 +63,8 @@ def display_jukebox_instructions():
   print '\n\n'
 
 def display_songs():
-  for index, song in enumerate(SONGS):
-    print "{}: {}".format(index, song.id)
+  for index, song in enumerate(songs):
+      print "{}: {}".format(index, song.name)
 
 #Rig the generation of the city to always have 3 bars.
 game = setup()
@@ -109,43 +108,43 @@ while not has_finished:
 
   #Get the users choice of song.
   selection_index = int(raw_input('You chose: '))
-  current_song = SONGS[selection_index]
-
-  #Inform user and NPCs that a new song is starting
-  print "\n{} begins to play...\n".format(current_song.id)
+  current_song = songs[selection_index]
 
   #Loop through song lyrics
-  song_stanzas = enumerate(current_song)
-  current_stanza = song_stanzas.next()[1]
   continue_song = True
   THINKER = None
   while continue_song:
-    print "{}\n".format(current_stanza.lyrics)
-    #Everyone in the bar will consider the song lyrics.
-    for person in chosen_bar.people_here_now:
-      THINKER = person
-      stimuli = person.mind.associate(current_stanza)
-      thought = person.mind.elicit_thought(stimuli)
-      if thought:
-          print "{person}: {thought} ({signals})".format(
-              person=person.full_name,
-              thought=thought.realize(),
-              signals=", ".join(
-                  "{signal} ({weight})".format(signal=signal, weight=weight) for signal, weight in thought.signals.iteritems()
-              )
-          )
-          thought.execute()
-          person.mind.thoughts.append(thought)
-      else:
-          print "{person}: ...".format(person=person.full_name)
+
+    #Play the next section of the song, unless the song is over.
     try:
-      current_stanza = song_stanzas.next()[1]
+      current_song.play_next_section()
+
+      #Everyone in the bar will consider the song lyrics.
+      for person in chosen_bar.people_here_now:
+        THINKER = person
+        stimuli = person.mind.associate({'signals': [(current_song.current_theme, 1)]})
+        thought = person.mind.elicit_thought(stimuli)
+        if thought:
+            print "{person}: {thought} ({signals})".format(
+                person=person.full_name,
+                thought=thought.realize(),
+                signals=", ".join(
+                    "{signal} ({weight})".format(signal=signal, weight=weight) for signal, weight in thought.signals.iteritems()
+                )
+            )
+            thought.execute()
+            person.mind.thoughts.append(thought)
+        else:
+            print "{person}: ...".format(person=person.full_name)
+
+      #Allow the player to stop the song mid-play.
       cont = raw_input("Continue? (yes/no): ")
-      if cont.lower() not in ("yes", 'y', 'ok', 'sure'): continue_song = False
+      if cont.lower() not in ("yes", 'y', 'ok', 'sure'): 
+        continue_song = False
+        current_song.stop()
+
     except StopIteration:
-      #Song is over.
       continue_song = False
-      print "No more lyrics"
 
     if chosen_bar.people_here_now == 0:
       has_finished = True # Game Over.
