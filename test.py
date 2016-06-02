@@ -9,7 +9,7 @@ from song import songs
 from business import Bar
 
 """GLOBAL VARS"""
-DEBUG = True if raw_input('ENGAGE DEBUG MODE? ') in ('yes', 'y', 'yeah', 'ok', 'sure', 'lol yep') else False
+DEBUG = True if raw_input('ENGAGE DEBUG MODE? ').lower() in ('yes', 'y', 'yeah', 'ok', 'sure', 'lol yep') else False
 
 """ FUNCTIONS """
 def setup():
@@ -125,20 +125,27 @@ while not has_finished:
         stimuli = person.mind.associate({'signals': [(current_song.current_theme, 1)]})
         thought = person.mind.elicit_thought(stimuli)
         if thought:
-            print "{person}: {thought} ({signals})".format(
+            if DEBUG: 
+              print "{person}: {thought} ({signals})".format(
+                  person=person.full_name,
+                  thought=thought.realize(),
+                  signals=", ".join(
+                      "{signal} ({weight})".format(signal=signal, weight=weight) for signal, weight in thought.signals.iteritems()
+                  )
+              )
+            else:
+              print "{person}: {thought}".format(
                 person=person.full_name,
-                thought=thought.realize(),
-                signals=", ".join(
-                    "{signal} ({weight})".format(signal=signal, weight=weight) for signal, weight in thought.signals.iteritems()
-                )
-            )
+                thought=thought.realize()
+              )
             thought.execute()
             person.mind.thoughts.append(thought)
         else:
             print "{person}: ...".format(person=person.full_name)
 
       #Allow the player to stop the song mid-play.
-      cont = raw_input("Continue? (yes/no): ")
+      cont = raw_input("\nContinue? (yes/no): ")
+      print '\n'
       if cont.lower() not in ("yes", 'y', 'ok', 'sure'): 
         continue_song = False
         current_song.stop()
