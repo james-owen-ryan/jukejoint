@@ -37,6 +37,11 @@ class Song(object):
       print '\nThe jukebox comes to a dead stop mid-lyric. The silence sounds deafening compared to the music that filled the air previously.\n'
     self.current_section = None
 
+  @property
+  def signals(self):
+    """Return the current theme."""
+    return [(self.current_theme, 1)]
+
 class Section(object):
 
   def __init__(self, lines=None, theme=None):
