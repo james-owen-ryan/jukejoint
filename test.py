@@ -1,6 +1,6 @@
 import sys
 # Change the sys path to locate a Talk of the Town repository
-PATH_TO_ANYTOWN = './talktown'
+PATH_TO_ANYTOWN = '../anytown'
 sys.path.append(PATH_TO_ANYTOWN)
 # Now import from that Talk of the Town repository
 from game import Game
@@ -14,6 +14,8 @@ DEBUG = True if raw_input('ENGAGE DEBUG MODE? ').lower() in ('yes', 'y', 'yeah',
 """ FUNCTIONS """
 def setup():
   game = Game()
+  # Set date of gameplay to 1987
+  game.config.date_gameplay_begins = (1987, 10, 18)
   print "Simulating a town's history..."
   try:
       game.establish_setting()
@@ -122,11 +124,11 @@ while not has_finished:
       #Everyone in the bar will consider the song lyrics.
       for person in chosen_bar.people_here_now:
         THINKER = person
-        stimuli = person.mind.associate({'signals': [(current_song.current_theme, 1)]})
+        stimuli = person.mind.associate(current_song)
         thought = person.mind.elicit_thought(stimuli)
         if thought:
             if DEBUG: 
-              print "{person}: {thought} ({signals})".format(
+              print "\n{person}: {thought} ({signals})\n".format(
                   person=person.full_name,
                   thought=thought.realize(),
                   signals=", ".join(
@@ -144,14 +146,24 @@ while not has_finished:
             print "{person}: ...".format(person=person.full_name)
 
       #Allow the player to stop the song mid-play.
-      cont = raw_input("\nContinue? (yes/no): ")
-      print '\n'
-      if cont.lower() not in ("yes", 'y', 'ok', 'sure'): 
-        continue_song = False
-        current_song.stop()
+      print '\n\n'
+      raw_input("\t\t\t\tPress enter to continue.  ")
+      print '\n\n'
 
     except StopIteration:
       continue_song = False
+      has_finished = True
 
-    if chosen_bar.people_here_now == 0:
-      has_finished = True # Game Over.
+    # if chosen_bar.people_here_now == 0:
+    #   has_finished = True # Game Over.
+
+
+def replay():
+    for p in chosen_bar.people_here_now:
+        print "{}\tDO: {}\tDON'T: {}".format(
+            p.name,
+            p.mind.receptors['do depart'].voltage if 'do depart' in p.mind.receptors else 0,
+            p.mind.receptors["don't depart"].voltage if "don't depart" in p.mind.receptors else 0
+        )
+        for t in p.mind.thoughts:
+            print '\t{}'.format(t.realize())
