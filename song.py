@@ -23,18 +23,23 @@ class Song(object):
 
     self.current_theme = current_section[1].theme
 
-    if current_section[0] is 0:
-      print '\n'+self.name+' begins to play...\n'
+    # if current_section[0] is 0:
+    #   print '\n'+self.name+' begins to play...\n'
 
-    print current_section[1].display_lines()+'\n'
+    print '\n\n{music_notes}\n{lyrics}\n{music_notes}'.format(
+      music_notes='{note} {note} {note}'.format(note='\xe2\x99\xab'),
+      lyrics=current_section[1].display_lines()
+    )
 
   def stop(self):
     try:
       self.current_section.next()
     except StopIteration:
-      print "\nThe song is over. The jukebox's lights continue to blink expectantly.\n"
+      # print "\nThe song is over. The jukebox's lights continue to blink expectantly.\n"
+      pass
     else:
-      print '\nThe jukebox comes to a dead stop mid-lyric. The silence sounds deafening compared to the music that filled the air previously.\n'
+      # print '\nThe jukebox comes to a dead stop mid-lyric. The silence sounds deafening compared to the music that filled the air previously.\n'
+      pass
     self.current_section = None
 
   @property
