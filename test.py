@@ -1,5 +1,6 @@
 import sys
 import time
+import datetime
 # Change the sys path to locate a Talk of the Town repository
 PATH_TO_ANYTOWN = '../anytown'
 sys.path.append(PATH_TO_ANYTOWN)
@@ -18,7 +19,8 @@ THINKERS = set()
 def setup():
   game = Game()
   # Set date of gameplay to 1987
-  game.config.date_gameplay_begins = (1987, 10, 18)
+  date_gameplay_begins = (1987, 10, 18)
+  game.ordinal_date_that_gameplay_begins = ( datetime.date(*date_gameplay_begins).toordinal() )
   print "Simulating a town's history..."
   try:
       game.establish_setting()
